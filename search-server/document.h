@@ -12,4 +12,4 @@ struct Document {
   int rating = 0;
 };
 
-std::ostream& operator<<(std::ostream& os, const Document& document);
+std::ostream &operator<<(std::ostream &os, const Document &document);
