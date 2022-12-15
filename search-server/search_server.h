@@ -2,12 +2,14 @@
 
 #include "document.h"
 #include "string_processing.h"
+#include "log_duration.h"
 
 #include <map>
 #include <set>
 #include <string>
 #include <vector>
 #include <algorithm>
+#include <iostream>
 
 #define ERROR_MARGIN 1e-6
 
@@ -44,7 +46,13 @@ class SearchServer {
   std::tuple<std::vector<std::string>, DocumentStatus> MatchDocument(const std::string &raw_query,
                                                                      int document_id) const;
 
-  int GetDocumentId(int index) const;
+  const std::map<std::string, double>& GetWordFrequencies(int document_id) const;
+
+  void RemoveDocument(int document_id);
+
+  std::set<int>::const_iterator begin() const;
+
+  std::set<int>::const_iterator end() const;
 
  private:
   struct DocumentData {
@@ -65,7 +73,9 @@ class SearchServer {
 
   const std::set<std::string> stop_words_;
   std::map<std::string, std::map<int, double>> word_to_document_freqs_;
+  std::map<int, std::map<std::string, double>> document_to_word_freqs_;
   std::map<int, DocumentData> documents_;
+  std::set<int> document_ids_;
 
   bool IsStopWord(const std::string &word) const;
 
@@ -101,6 +111,7 @@ SearchServer::SearchServer(const StringContainer &stop_words)
 template<typename DocumentPredicate>
 std::vector<Document> SearchServer::FindTopDocuments(const std::string &raw_query,
                                                      DocumentPredicate document_predicate) const {
+//  LOG_DURATION_STREAM("Operation time", std::cout);
   const Query query = GetValidParsedQuery(raw_query);
 
   auto matched_documents = FindAllDocuments(query, document_predicate);

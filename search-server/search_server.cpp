@@ -25,8 +25,10 @@ void SearchServer::AddDocument(int document_id, const string &document, Document
   const double inv_word_count = 1.0 / words.size();
   for (const string &word : words) {
     word_to_document_freqs_[word][document_id] += inv_word_count;
+    document_to_word_freqs_[document_id][word] += inv_word_count;
   }
   documents_.emplace(document_id, DocumentData{ComputeAverageRating(ratings), status});
+  document_ids_.insert(document_id);
 }
 
 vector<Document> SearchServer::FindTopDocuments(const string &raw_query,
@@ -42,11 +44,12 @@ vector<Document> SearchServer::FindTopDocuments(const string &raw_query) const {
 }
 
 int SearchServer::GetDocumentCount() const {
-  return documents_.size();
+  return document_ids_.size();
 }
 
 tuple<vector<string>, DocumentStatus> SearchServer::MatchDocument(const string &raw_query,
                                                                   int document_id) const {
+//  LOG_DURATION_STREAM("Operation time", cout);
   const Query query = GetValidParsedQuery(raw_query);
   vector<string> matched_words;
   for (const string &word : query.plus_words) {
@@ -69,13 +72,38 @@ tuple<vector<string>, DocumentStatus> SearchServer::MatchDocument(const string &
   return {matched_words, documents_.at(document_id).status};
 }
 
-int SearchServer::GetDocumentId(int index) const {
-  if (index < 0 || index >= documents_.size()) {
-    throw out_of_range("No document with index "s + to_string(index));
+const map<string, double> &SearchServer::GetWordFrequencies(int document_id) const {
+  const auto it = document_to_word_freqs_.find(document_id);
+  if (it == document_to_word_freqs_.end()) {
+    static const map<string, double> empty_map;
+    return empty_map;
   }
+  return it->second;
+}
 
-  auto it = next(documents_.begin(), index);
-  return it->first;
+void SearchServer::RemoveDocument(int document_id) {
+  const auto document_to_word_freqs_it = document_to_word_freqs_.find(document_id);
+  if (document_to_word_freqs_it == document_to_word_freqs_.end()) {
+    return;
+  }
+  const auto word_freqs = document_to_word_freqs_it->second;
+  document_ids_.erase(document_id);
+  documents_.erase(document_id);
+  document_to_word_freqs_.erase(document_id);
+  for (const auto &[word, freq] : word_freqs) {
+    const auto word_to_document_freqs_it = word_to_document_freqs_.find(word);
+    if (word_to_document_freqs_it != word_to_document_freqs_.end()) {
+      word_to_document_freqs_it->second.erase(document_id);
+    }
+  }
+}
+
+set<int>::const_iterator SearchServer::begin() const {
+  return document_ids_.begin();
+}
+
+set<int>::const_iterator SearchServer::end() const {
+  return document_ids_.end();
 }
 
 bool SearchServer::IsStopWord(const string &word) const {
