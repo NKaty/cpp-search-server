@@ -15,13 +15,6 @@
 
 const int MAX_RESULT_DOCUMENT_COUNT = 5;
 
-enum class DocumentStatus {
-  ACTUAL,
-  IRRELEVANT,
-  BANNED,
-  REMOVED,
-};
-
 class SearchServer {
  public:
   template<typename StringContainer>
@@ -36,8 +29,7 @@ class SearchServer {
   std::vector<Document> FindTopDocuments(const std::string &raw_query,
                                          DocumentPredicate document_predicate) const;
 
-  std::vector<Document>
-  FindTopDocuments(const std::string &raw_query, DocumentStatus status) const;
+  std::vector<Document> FindTopDocuments(const std::string &raw_query, DocumentStatus status) const;
 
   std::vector<Document> FindTopDocuments(const std::string &raw_query) const;
 
@@ -46,7 +38,7 @@ class SearchServer {
   std::tuple<std::vector<std::string>, DocumentStatus> MatchDocument(const std::string &raw_query,
                                                                      int document_id) const;
 
-  const std::map<std::string, double>& GetWordFrequencies(int document_id) const;
+  const std::map<std::string, double> &GetWordFrequencies(int document_id) const;
 
   void RemoveDocument(int document_id);
 

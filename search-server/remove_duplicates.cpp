@@ -9,11 +9,11 @@ using namespace std;
 
 void RemoveDuplicates(SearchServer &search_server) {
   vector<int> ids_to_remove;
-  set<string> unique_words;
+  set<set<string>> unique_words;
   for (const int document_id : search_server) {
-    string words = ""s;
+    set<string> words;
     for (const auto &[word, _] : search_server.GetWordFrequencies(document_id)) {
-      words += word;
+      words.insert(word);
     }
     if (unique_words.find(words) != unique_words.end()) {
       ids_to_remove.push_back(document_id);
