@@ -14,7 +14,7 @@ class LogDuration {
  public:
   using Clock = std::chrono::steady_clock;
 
-  LogDuration(std::string operation_name, std::ostream &os = std::cerr)
+  LogDuration(std::string_view operation_name, std::ostream &os = std::cerr)
       : operation_name_(operation_name), os_(os) {
   }
 

@@ -13,7 +13,7 @@ void RemoveDuplicates(SearchServer &search_server) {
   for (const int document_id : search_server) {
     set<string> words;
     for (const auto &[word, _] : search_server.GetWordFrequencies(document_id)) {
-      words.insert(word);
+      words.insert(string(word));
     }
     if (unique_words.find(words) != unique_words.end()) {
       ids_to_remove.push_back(document_id);
